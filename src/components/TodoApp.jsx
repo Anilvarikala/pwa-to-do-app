@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, CheckCircle2, Circle, X, Filter, Moon, Sun } from 'lucide-react'
+import { Plus, Trash2, CheckCircle2, Circle, Filter, LayoutGrid, CheckSquare } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const TodoApp = () => {
@@ -8,7 +8,7 @@ const TodoApp = () => {
         return saved ? JSON.parse(saved) : []
     })
     const [inputValue, setInputValue] = useState('')
-    const [filter, setFilter] = useState('all') // all, active, completed
+    const [filter, setFilter] = useState('all')
 
     useEffect(() => {
         localStorage.setItem('todos', JSON.stringify(todos))
@@ -49,94 +49,142 @@ const TodoApp = () => {
         return true
     })
 
-    return (
-        <div className="max-w-2xl mx-auto px-4 py-12 md:py-20">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass rounded-3xl p-8 md:p-12 mb-8"
-            >
-                <header className="flex justify-between items-center mb-10">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-[#0f172a] dark:text-white mb-2">
-                            Stay Focused.
-                        </h1>
-                        <p className="text-[#64748b] dark:text-[#94a3b8] font-medium">
-                            {todos.filter(t => !t.completed).length} tasks remaining
-                        </p>
-                    </div>
-                </header>
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.05 }
+        }
+    }
 
-                <form onSubmit={addTodo} className="relative mb-8">
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10, scale: 0.98 },
+        visible: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+    }
+
+    return (
+        <div className="min-h-screen w-full flex flex-col items-center">
+            <div className="w-full max-w-xl px-6 py-12 md:py-24">
+                {/* Header Section */}
+                <motion.header
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12 space-y-2"
+                >
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                            Today
+                        </h1>
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-semibold">
+                            <CheckSquare size={14} />
+                            <span>{todos.filter(t => !t.completed).length} items</span>
+                        </div>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg font-medium">
+                        Focus on what matters most.
+                    </p>
+                </motion.header>
+
+                {/* Input Section */}
+                <motion.form
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    onSubmit={addTodo}
+                    className="relative group mb-10"
+                >
+                    <div className="absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent group-focus-within:via-blue-500 transition-all"></div>
                     <input
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Add a new task..."
-                        className="w-full bg-[#f1f5f9]/50 dark:bg-[#1e293b]/50 border-none rounded-2xl py-4 pl-6 pr-14 text-lg focus:ring-2 focus:ring-blue-500/20 transition-all outline-none placeholder:text-[#94a3b8]"
+                        placeholder="Add a task for today..."
+                        className="w-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-none rounded-2xl py-5 pl-7 pr-16 text-lg md:text-xl font-medium shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 focus:ring-2 focus:ring-blue-500/50 transition-all outline-none placeholder:text-slate-400 dark:placeholder:text-slate-600"
                     />
                     <button
                         type="submit"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#3b82f6] text-white p-2.5 rounded-xl hover:bg-[#2563eb] transition-all shadow-lg shadow-blue-500/25"
+                        disabled={!inputValue.trim()}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 dark:bg-blue-500 text-white p-3 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition-all shadow-lg shadow-blue-500/20"
                     >
-                        <Plus size={24} />
+                        <Plus size={24} strokeWidth={2.5} />
                     </button>
-                </form>
+                </motion.form>
 
-                <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                    {['all', 'active', 'completed'].map((f) => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-5 py-2 rounded-full text-sm font-semibold capitalize transition-all ${filter === f
-                                    ? 'bg-[#3b82f6] text-white shadow-md shadow-blue-500/20'
-                                    : 'bg-[#f1f5f9] dark:bg-[#1e293b] text-[#64748b] hover:bg-[#e2e8f0] dark:hover:bg-[#334155]'
-                                }`}
-                        >
-                            {f}
-                        </button>
-                    ))}
+                {/* Filters Section */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl backdrop-blur-md">
+                        {['all', 'active', 'completed'].map((f) => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold capitalize transition-all ${filter === f
+                                        ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-white shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                    }`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
                     {todos.some(t => t.completed) && (
                         <button
                             onClick={clearCompleted}
-                            className="ml-auto text-sm font-semibold text-[#ef4444] hover:bg-red-50 dark:hover:bg-red-900/10 px-4 py-2 rounded-full transition-all"
+                            className="text-sm font-bold text-rose-500 hover:text-rose-600 transition-colors"
                         >
-                            Clear Completed
+                            Clear Done
                         </button>
                     )}
                 </div>
 
-                <div className="space-y-3">
-                    <AnimatePresence mode="popLayout">
+                {/* List Section */}
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-3"
+                >
+                    <AnimatePresence mode="popLayout" initial={false}>
                         {filteredTodos.map((todo) => (
                             <motion.div
                                 key={todo.id}
                                 layout
-                                initial={{ opacity: 0, x: -20, scale: 0.95 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                                className={`group flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent hover:border-blue-500/10 ${todo.completed ? 'opacity-60' : ''
-                                    }`}
+                                variants={itemVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="group relative flex items-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl ring-1 ring-slate-200/60 dark:ring-slate-800/60 hover:ring-blue-500/30 transition-all shadow-sm"
                             >
                                 <button
                                     onClick={() => toggleTodo(todo.id)}
-                                    className="flex-shrink-0 transition-transform active:scale-90"
+                                    className="relative flex-shrink-0 w-8 h-8 flex items-center justify-center transition-transform active:scale-90"
                                 >
-                                    {todo.completed ? (
-                                        <CheckCircle2 className="text-[#10b981]" size={26} />
-                                    ) : (
-                                        <Circle className="text-[#cbd5e1] dark:text-[#475569]" size={26} />
-                                    )}
+                                    <div className={`absolute inset-0 rounded-full border-2 transition-all ${todo.completed
+                                            ? 'bg-emerald-500 border-emerald-500 scale-110'
+                                            : 'border-slate-300 dark:border-slate-600'
+                                        }`}></div>
+                                    <AnimatePresence>
+                                        {todo.completed && (
+                                            <motion.div
+                                                initial={{ scale: 0, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                exit={{ scale: 0, opacity: 0 }}
+                                            >
+                                                <CheckCircle2 size={18} className="text-white" strokeWidth={3} />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </button>
 
-                                <span className={`flex-grow text-lg font-medium transition-all ${todo.completed ? 'line-through text-[#94a3b8]' : 'text-[#334155] dark:text-[#e2e8f0]'
+                                <span className={`flex-grow text-lg font-semibold transition-all duration-300 ${todo.completed
+                                        ? 'text-slate-400 dark:text-slate-600 line-through'
+                                        : 'text-slate-700 dark:text-slate-200'
                                     }`}>
                                     {todo.text}
                                 </span>
 
                                 <button
                                     onClick={() => deleteTodo(todo.id)}
-                                    className="opacity-0 group-hover:opacity-100 p-2 text-[#94a3b8] hover:text-[#ef4444] hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                    className="opacity-0 group-hover:opacity-100 p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
                                 >
                                     <Trash2 size={20} />
                                 </button>
@@ -146,23 +194,21 @@ const TodoApp = () => {
 
                     {filteredTodos.length === 0 && (
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-12"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="bg-slate-50 dark:bg-slate-900/30 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center"
                         >
-                            <div className="bg-[#f1f5f9] dark:bg-[#1e293b] w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Filter className="text-[#94a3b8]" size={32} />
-                            </div>
-                            <p className="text-[#64748b] font-medium text-lg">No tasks found here.</p>
+                            <LayoutGrid className="mx-auto text-slate-300 dark:text-slate-700 mb-4" size={48} />
+                            <p className="text-slate-500 dark:text-slate-500 text-lg font-bold">
+                                No tasks to show
+                            </p>
                         </motion.div>
                     )}
-                </div>
-            </motion.div>
+                </motion.div>
+            </div>
 
-            <footer className="text-center">
-                <p className="text-[#94a3b8] text-sm font-medium">
-                    Premium Productivity &bull; Built with React
-                </p>
+            <footer className="mt-auto py-8 text-center text-slate-400 dark:text-slate-600 font-bold text-sm">
+                SENIOR UX OPTIMIZED &bull; PWA READY
             </footer>
         </div>
     )
